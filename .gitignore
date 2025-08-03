@@ -205,3 +205,122 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ============================================================================
+# ML/AI SPECIFIC
+# ============================================================================
+
+# Model weights and checkpoints
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.pkl
+*.joblib
+*.model
+
+# ONNX models
+*.onnx
+
+# TensorFlow
+*.pb
+saved_model/
+
+# Weights & Biases
+wandb/
+
+# MLflow
+mlruns/
+
+# DVC
+.dvc/
+
+# Experiment tracking
+experiments/
+runs/
+logs/
+tensorboard_logs/
+
+# Data files
+*.csv
+*.tsv
+*.parquet
+*.h5
+*.hdf5
+*.npz
+*.npy
+
+# ============================================================================
+# AUDIO/VIDEO FILES
+# ============================================================================
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.aac
+*.ogg
+*.wma
+*.aiff
+*.au
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.mpg
+*.mpeg
+
+# ============================================================================
+# PROJECT SPECIFIC
+# ============================================================================
+
+# Data directories
+data/raw/
+data/processed/
+data/external/
+data/interim/
+
+# Model directories
+models/
+weights/
+checkpoints/
+
+# Output directories
+outputs/
+results/
+visualization/
+reports/
+
+# Cache directories
+.cache/
+cache/
+tmp/
+temp/
+
+# Configuration files with secrets
+config.yaml
+secrets.yaml
+credentials.json
+
+# Local development files
+local_*
+dev_*
+test_*
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+EOF < /dev/null

@@ -1,0 +1,96 @@
+{
+	"name": "AV-Separation-Transformer Development",
+	"image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/cuda:1": {
+			"installCudnn": true,
+			"installNvtop": true
+		}
+	},
+	
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.flake8",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"ms-python.mypy-type-checker",
+				"ms-toolsai.jupyter",
+				"ms-vscode.makefile-tools",
+				"redhat.vscode-yaml",
+				"ms-vscode.vscode-json",
+				"github.vscode-github-actions",
+				"ms-vscode-remote.remote-containers",
+				"eamodio.gitlens",
+				"ms-vsliveshare.vsliveshare",
+				"streetsidesoftware.code-spell-checker"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.linting.enabled": true,
+				"python.linting.flake8Enabled": true,
+				"python.formatting.provider": "black",
+				"python.sortImports.provider": "isort",
+				"python.testing.pytestEnabled": true,
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestArgs": [
+					"tests"
+				],
+				"files.exclude": {
+					"**/__pycache__": true,
+					"**/*.pyc": true,
+					"**/.pytest_cache": true,
+					"**/.coverage": true,
+					"**/htmlcov": true
+				},
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.organizeImports": true
+				},
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	},
+	
+	"forwardPorts": [8888, 6006, 8080, 5000],
+	"portsAttributes": {
+		"8888": {
+			"label": "Jupyter Lab",
+			"onAutoForward": "notify"
+		},
+		"6006": {
+			"label": "TensorBoard",
+			"onAutoForward": "silent"
+		},
+		"8080": {
+			"label": "Web Server",
+			"onAutoForward": "silent"
+		},
+		"5000": {
+			"label": "Flask API",
+			"onAutoForward": "silent"
+		}
+	},
+	
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+	
+	"mounts": [
+		"source=${localWorkspaceFolder}/.cache,target=/home/vscode/.cache,type=bind,consistency=cached",
+		"source=${localWorkspaceFolder}/.local,target=/home/vscode/.local,type=bind,consistency=cached"
+	],
+	
+	"remoteUser": "vscode",
+	"containerEnv": {
+		"PYTHONPATH": "${containerWorkspaceFolder}/src:${containerWorkspaceFolder}",
+		"CUDA_VISIBLE_DEVICES": "0",
+		"PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:512",
+		"NUMBA_CACHE_DIR": "/tmp/numba_cache",
+		"MPLCONFIGDIR": "/tmp/matplotlib"
+	}
+}

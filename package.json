@@ -1,0 +1,100 @@
+{
+  "name": "av-separation-transformer",
+  "version": "1.0.0-dev",
+  "description": "Production-ready audio-visual speech separation using transformer architecture",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "python -m pytest tests/ -v --cov=src --cov-report=html --cov-report=term",
+    "test:unit": "python -m pytest tests/unit/ -v",
+    "test:integration": "python -m pytest tests/integration/ -v",
+    "test:performance": "python -m pytest tests/performance/ -v --benchmark-only",
+    "test:watch": "ptw -- --testmon",
+    "lint": "python -m flake8 src/ tests/ && python -m mypy src/",
+    "lint:fix": "python -m black src/ tests/ && python -m isort src/ tests/",
+    "format": "python -m black src/ tests/ && python -m isort src/ tests/",
+    "format:check": "python -m black --check src/ tests/ && python -m isort --check-only src/ tests/",
+    "typecheck": "python -m mypy src/",
+    "security": "python -m bandit -r src/ && python -m safety check",
+    "build": "python -m build",
+    "build:wheel": "python -m build --wheel",
+    "build:sdist": "python -m build --sdist",
+    "install": "pip install -e .",
+    "install:dev": "pip install -e .[dev]",
+    "clean": "rm -rf build/ dist/ *.egg-info/ .pytest_cache/ .coverage htmlcov/ .mypy_cache/",
+    "docs": "sphinx-build docs/ docs/_build/",
+    "docs:serve": "sphinx-autobuild docs/ docs/_build/ --host 0.0.0.0 --port 8080",
+    "docs:clean": "rm -rf docs/_build/",
+    "serve": "python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8080 --reload",
+    "serve:prod": "python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8080",
+    "benchmark": "python benchmarks/separation_benchmark.py",
+    "benchmark:latency": "python benchmarks/latency_benchmark.py",
+    "benchmark:memory": "python benchmarks/memory_benchmark.py",
+    "train": "python scripts/train.py",
+    "evaluate": "python scripts/evaluate.py",
+    "export:onnx": "python scripts/export_onnx.py",
+    "separate": "python scripts/separate.py",
+    "download:weights": "python scripts/download_weights.py",
+    "setup:data": "python scripts/setup_data.py",
+    "docker:build": "docker build -t av-separation:latest .",
+    "docker:run": "docker run --gpus all -p 8080:8080 av-separation:latest",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "k8s:deploy": "kubectl apply -f k8s/",
+    "precommit": "pre-commit run --all-files",
+    "precommit:install": "pre-commit install",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run",
+    "health": "python -c 'from src.services import SeparationService; print(SeparationService().health_check())'",
+    "jupyter": "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root",
+    "tensorboard": "tensorboard --logdir=logs/ --host=0.0.0.0 --port=6006",
+    "wandb:login": "wandb login",
+    "profile": "python -m cProfile -o profile.stats scripts/profile_separation.py",
+    "profile:view": "python -c 'import pstats; pstats.Stats(\"profile.stats\").sort_stats(\"cumulative\").print_stats(20)'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danieleschmidt/AV-Separation-Transformer.git"
+  },
+  "keywords": [
+    "audio",
+    "video",
+    "speech-separation",
+    "transformer",
+    "machine-learning",
+    "pytorch",
+    "webrtc",
+    "onnx",
+    "real-time",
+    "video-conferencing",
+    "cocktail-party-problem",
+    "multi-modal",
+    "attention",
+    "deep-learning",
+    "ai"
+  ],
+  "author": {
+    "name": "Daniel Schmidt",
+    "email": "daniel.schmidt@terragonlabs.com",
+    "url": "https://terragonlabs.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/danieleschmidt/AV-Separation-Transformer/issues"
+  },
+  "homepage": "https://github.com/danieleschmidt/AV-Separation-Transformer#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "python": ">=3.10"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/danieleschmidt"
+  }
+}
