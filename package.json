@@ -1,0 +1,39 @@
+{
+  "name": "av-separation-transformer",
+  "version": "1.0.0",
+  "description": "Audio-Visual Speech Separation Transformer",
+  "scripts": {
+    "test": "pytest",
+    "test:cov": "pytest --cov=av_separation --cov-report=html",
+    "lint": "flake8 src/ tests/",
+    "format": "black src/ tests/",
+    "typecheck": "mypy src/",
+    "build": "python setup.py sdist bdist_wheel",
+    "dev": "python -m av_separation.cli --dev",
+    "start": "uvicorn av_separation.api.app:app --reload",
+    "docs:build": "mkdocs build",
+    "docs:serve": "mkdocs serve",
+    "benchmark": "python benchmarks/test_latency.py",
+    "clean": "rm -rf build/ dist/ *.egg-info __pycache__ .pytest_cache .coverage htmlcov/",
+    "install": "pip install -e '.[dev]'",
+    "precommit": "pre-commit run --all-files"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danieleschmidt/AV-Separation-Transformer.git"
+  },
+  "keywords": [
+    "audio",
+    "video",
+    "speech-separation",
+    "transformer",
+    "deep-learning",
+    "pytorch"
+  ],
+  "author": "Daniel Schmidt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/danieleschmidt/AV-Separation-Transformer/issues"
+  },
+  "homepage": "https://github.com/danieleschmidt/AV-Separation-Transformer#readme"
+}
