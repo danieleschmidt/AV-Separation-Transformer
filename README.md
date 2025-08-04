@@ -316,9 +316,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 @software{av-separation-transformer,
   title={AV-Separation-Transformer: Production-Ready Implementation},
-  author={Your Name},
+  author={Daniel Schmidt},
   year={2025},
-  url={https://github.com/yourusername/AV-Separation-Transformer}
+  url={https://github.com/danieleschmidt/AV-Separation-Transformer}
 }
 ```
 
