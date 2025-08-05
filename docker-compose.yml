@@ -1,0 +1,241 @@
+version: '3.8'
+
+services:
+  # AV-Separation API Service
+  av-separation-api:
+    build: 
+      context: .
+      target: production
+    container_name: av-separation-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - PROMETHEUS_ENABLED=true
+      - PROMETHEUS_PORT=9090
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - MODEL_CACHE_SIZE=1000
+      - MAX_WORKERS=4
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./tmp:/app/tmp
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    networks:
+      - av-separation-network
+    depends_on:
+      - redis
+      - prometheus
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: av-separation-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    networks:
+      - av-separation-network
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: av-separation-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - av-separation-network
+
+  # Grafana for metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: av-separation-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - av-separation-network
+    depends_on:
+      - prometheus
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: av-separation-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - av-separation-network
+    depends_on:
+      - av-separation-api
+
+  # Worker nodes for scaling (optional)
+  av-separation-worker:
+    build: 
+      context: .
+      target: production
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+      - WORKER_MODE=true
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./tmp:/app/tmp
+    command: ["python", "-m", "src.av_separation.worker"]
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    networks:
+      - av-separation-network
+    depends_on:
+      - redis
+      - av-separation-api
+
+  # File storage service (MinIO for object storage)
+  minio:
+    image: minio/minio:latest
+    container_name: av-separation-storage
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-admin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-adminpassword}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - av-separation-network
+
+# Development services
+  # Development API (with hot reload)
+  av-separation-dev:
+    build: 
+      context: .
+      target: development
+    container_name: av-separation-dev
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=DEBUG
+      - DEVELOPMENT=true
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./models:/app/models
+    networks:
+      - av-separation-network
+    depends_on:
+      - redis
+    profiles:
+      - development
+
+  # Jupyter notebook for development
+  jupyter:
+    build: 
+      context: .
+      target: development
+    container_name: av-separation-jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - PYTHONPATH=/app
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - .:/app
+      - ./notebooks:/app/notebooks
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]
+    networks:
+      - av-separation-network
+    profiles:
+      - development
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  minio_data:
+    driver: local
+
+# Networks
+networks:
+  av-separation-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
