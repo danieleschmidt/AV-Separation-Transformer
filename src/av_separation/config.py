@@ -1,6 +1,13 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Tuple
-import torch
+
+try:
+    import torch
+    _torch_available = True
+    _default_device = "cuda" if torch.cuda.is_available() else "cpu"
+except ImportError:
+    _torch_available = False
+    _default_device = "cpu"
 
 
 @dataclass
@@ -61,7 +68,7 @@ class ModelConfig:
 
 @dataclass
 class InferenceConfig:
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    device: str = _default_device
     batch_size: int = 1
     chunk_size_ms: int = 20
     lookahead_ms: int = 40
@@ -100,11 +107,11 @@ class TrainingConfig:
 
 @dataclass
 class SeparatorConfig:
-    audio: AudioConfig = AudioConfig()
-    video: VideoConfig = VideoConfig()
-    model: ModelConfig = ModelConfig()
-    inference: InferenceConfig = InferenceConfig()
-    training: TrainingConfig = TrainingConfig()
+    audio: AudioConfig = field(default_factory=AudioConfig)
+    video: VideoConfig = field(default_factory=VideoConfig)
+    model: ModelConfig = field(default_factory=ModelConfig)
+    inference: InferenceConfig = field(default_factory=InferenceConfig)
+    training: TrainingConfig = field(default_factory=TrainingConfig)
     
     def to_dict(self):
         return {
