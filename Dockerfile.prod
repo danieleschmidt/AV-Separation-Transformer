@@ -1,0 +1,48 @@
+
+FROM nvidia/cuda:12.1-devel-ubuntu22.04 as builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 python3.10-dev python3-pip \
+    ffmpeg libsm6 libxext6 libxrender-dev libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python environment
+WORKDIR /app
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY setup.py .
+RUN pip3 install -e .
+
+# Production stage
+FROM nvidia/cuda:12.1-runtime-ubuntu22.04
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    python3.10 python3-pip ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy Python environment from builder
+COPY --from=builder /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app/src /app/src
+
+WORKDIR /app
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose ports
+EXPOSE 8000 8080
+
+# Start application
+CMD ["python3", "-m", "av_separation.api.app"]

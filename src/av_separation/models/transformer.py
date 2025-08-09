@@ -80,7 +80,11 @@ class AVSeparationTransformer(nn.Module):
         
         self.eval()
         with torch.no_grad():
-            audio_spec = self._compute_spectrogram(audio_waveform)
+            # Handle case where audio_waveform is actually a spectrogram
+            if audio_waveform.dim() == 2:
+                audio_spec = audio_waveform
+            else:
+                audio_spec = self._compute_spectrogram(audio_waveform)
             
             outputs = self.forward(
                 audio_spec.unsqueeze(0),

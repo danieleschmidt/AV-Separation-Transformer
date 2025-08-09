@@ -350,10 +350,13 @@ class SecurityAuditor:
         current_time = time.time()
         recent_alerts = [alert for alert in self.alerts if current_time - alert.timestamp < 3600]  # Last hour
         
+        # Convert enum keys to strings for JSON serialization
+        alert_counts_by_type = {event_type.value: count for event_type, count in self.alert_counts.items()}
+        
         return {
             'total_alerts': len(self.alerts),
             'recent_alerts_1h': len(recent_alerts),
-            'alert_counts_by_type': dict(self.alert_counts),
+            'alert_counts_by_type': alert_counts_by_type,
             'high_risk_ips': [ip for ip, score in self.threat_scores.items() if score >= 50],
             'top_threat_ips': sorted(
                 self.threat_scores.items(),

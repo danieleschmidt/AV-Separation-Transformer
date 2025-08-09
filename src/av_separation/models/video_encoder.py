@@ -95,8 +95,16 @@ class LipEncoder(nn.Module):
     def forward(self, x):
         if x.dim() == 4:
             x = x.unsqueeze(1)
+        elif x.dim() == 5 and x.shape[1] > 1:
+            # Handle case where input has shape (batch, time, channels, height, width)
+            # Rearrange to (batch, channels, time, height, width)
+            x = x.permute(0, 2, 1, 3, 4)
         
-        batch_size, _, time_steps = x.shape[:3]
+        batch_size, channels, time_steps = x.shape[:3]
+        
+        # Ensure single channel for 3D convolution
+        if channels > 1:
+            x = x.mean(dim=1, keepdim=True)  # Convert to grayscale
         
         x = self.conv3d_layers(x)
         
@@ -152,36 +160,48 @@ class VideoEncoder(nn.Module):
         lip_regions = []
         
         for b in range(batch_size):
-            face_bboxes = faces[b]
+            face_bboxes = faces[b] if len(faces) > b else torch.zeros(1, 4).to(frames.device)
             batch_lips = []
             
             for t in range(time_steps):
-                frame = frames[b, t]
+                frame = frames[b, t]  # Shape: (C, H, W)
                 
-                if face_bboxes.size(0) > 0:
+                if face_bboxes.size(0) > 0 and face_bboxes[0].sum() > 0:
                     bbox = face_bboxes[0]
                     
                     x1, y1, w, h = bbox.int()
                     x2, y2 = x1 + w, y1 + h
                     
-                    y_center = (y1 + y2) // 2
-                    lip_y1 = y_center
-                    lip_y2 = min(y2, lip_y1 + h // 3)
+                    # Ensure coordinates are within bounds
+                    H, W = frame.shape[-2:]
+                    x1, y1 = max(0, x1), max(0, y1)
+                    x2, y2 = min(W, x2), min(H, y2)
                     
-                    lip_region = frame[:, lip_y1:lip_y2, x1:x2]
-                    
-                    if lip_region.numel() > 0:
-                        lip_region = F.interpolate(
-                            lip_region.unsqueeze(0),
-                            size=self.config.video.lip_size,
-                            mode='bilinear',
-                            align_corners=False
-                        ).squeeze(0)
+                    if x2 > x1 and y2 > y1:
+                        y_center = (y1 + y2) // 2
+                        lip_y1 = y_center
+                        lip_y2 = min(y2, lip_y1 + h // 3)
+                        
+                        if lip_y2 > lip_y1:
+                            lip_region = frame[:, lip_y1:lip_y2, x1:x2]
+                            
+                            if lip_region.numel() > 0:
+                                lip_region = F.interpolate(
+                                    lip_region.unsqueeze(0),
+                                    size=self.config.video.lip_size,
+                                    mode='bilinear',
+                                    align_corners=False
+                                ).squeeze(0)
+                            else:
+                                lip_region = torch.zeros(3, *self.config.video.lip_size).to(frame.device)
+                        else:
+                            lip_region = torch.zeros(3, *self.config.video.lip_size).to(frame.device)
                     else:
                         lip_region = torch.zeros(3, *self.config.video.lip_size).to(frame.device)
                 else:
                     lip_region = torch.zeros(3, *self.config.video.lip_size).to(frame.device)
                 
+                # Convert to grayscale for 3D convolution
                 lip_region = torch.mean(lip_region, dim=0, keepdim=True)
                 batch_lips.append(lip_region)
             
