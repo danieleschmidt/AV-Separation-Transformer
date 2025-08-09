@@ -53,17 +53,19 @@ class MultiScaleSpectrogram(nn.Module):
     def forward(self, x):
         spectrograms = []
         
-        for i, projection in enumerate(self.scale_projections):
-            scale_spec = projection(x)
+        base_spec = self.scale_projections[0](x)
+        spectrograms.append(base_spec)
+        
+        for i in range(1, len(self.scale_projections)):
+            scale_spec = self.scale_projections[i](x)
             
-            if i > 0:
-                scale_factor = 2 ** i
-                scale_spec = F.interpolate(
-                    scale_spec.transpose(1, 2),
-                    scale_factor=scale_factor,
-                    mode='linear',
-                    align_corners=False
-                ).transpose(1, 2)
+            # Interpolate to match base_spec length
+            scale_spec = F.interpolate(
+                scale_spec.transpose(1, 2),
+                size=base_spec.size(1),
+                mode='linear',
+                align_corners=False
+            ).transpose(1, 2)
             
             spectrograms.append(scale_spec)
         

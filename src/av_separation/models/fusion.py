@@ -207,7 +207,37 @@ class CrossModalFusion(nn.Module):
         video_features = video_features + self.modality_embedding[1]
         
         aligned_video, alignment_score = self.dtw(audio_features, video_features)
+        
+        # Handle sequence length mismatch by interpolating
+        if video_features.size(1) != aligned_video.size(1):
+            aligned_video = F.interpolate(
+                aligned_video.transpose(1, 2),
+                size=video_features.size(1),
+                mode='linear',
+                align_corners=False
+            ).transpose(1, 2)
+        
         video_features = 0.5 * video_features + 0.5 * aligned_video
+        
+        # Align sequence lengths before fusion layers
+        audio_len, video_len = audio_features.size(1), video_features.size(1)
+        target_len = min(audio_len, video_len)
+        
+        if audio_len != target_len:
+            audio_features = F.interpolate(
+                audio_features.transpose(1, 2),
+                size=target_len,
+                mode='linear',
+                align_corners=False
+            ).transpose(1, 2)
+        
+        if video_len != target_len:
+            video_features = F.interpolate(
+                video_features.transpose(1, 2),
+                size=target_len,
+                mode='linear',
+                align_corners=False
+            ).transpose(1, 2)
         
         for layer in self.fusion_layers:
             audio_features, video_features = layer(
