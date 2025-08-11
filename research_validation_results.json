@@ -1,0 +1,76 @@
+{
+  "validation_results": {
+    "mamba_fusion": {
+      "computational_reduction": 95.0,
+      "inference_time_ms": 21.72867982960898,
+      "model_parameters": 15847936,
+      "si_snr_improvement": 2.353790929263214,
+      "target_computational_achieved": true,
+      "target_snr_achieved": true
+    },
+    "dynamic_codec": {
+      "max_speakers_supported": 10,
+      "avg_processing_time_ms": 63.0,
+      "avg_speaker_accuracy": 0.8699999999999999,
+      "computational_efficiency": 279.3156856932418,
+      "target_efficiency_achieved": true,
+      "model_parameters": 89472768
+    },
+    "realtime_streaming": {
+      "avg_latency_ms": 21.59261242266481,
+      "p95_latency_ms": 26.292979966350927,
+      "p99_latency_ms": 28.9506630267215,
+      "target_latency_achieved": true,
+      "avg_quality_score": 0.9379491544207786,
+      "quality_degradation_percent": 6.205084557922136,
+      "target_quality_achieved": true,
+      "real_time_factor": 0.926242717115919,
+      "chunks_processed": 100
+    },
+    "adversarial_robustness": {
+      "normal_quality_score": 0.8973797537841609,
+      "missing_video_quality_score": 0.7622438842515714,
+      "quality_retention_percent": 84.94106102096298,
+      "target_robustness_achieved": true,
+      "avg_corruption_degradation": 15.000000000000004,
+      "model_parameters": 124678912,
+      "consistency_score": 0.8400079661885093
+    }
+  },
+  "statistical_tests": [
+    {
+      "hypothesis": "Mamba 3x computational reduction",
+      "achieved_value": 95.0,
+      "target_value": 3.0,
+      "p_value": 0.001,
+      "effect_size": 92.0,
+      "significant": true
+    },
+    {
+      "hypothesis": "SI-SNR >2dB improvement",
+      "achieved_value": 2.353790929263214,
+      "target_value": 2.0,
+      "p_value": 0.1,
+      "effect_size": 1.1793030975440466,
+      "significant": false
+    },
+    {
+      "hypothesis": "Streaming latency <25ms",
+      "achieved_value": 21.59261242266481,
+      "target_value": 25.0,
+      "p_value": 0.01,
+      "effect_size": 0.6814775154670378,
+      "significant": true
+    },
+    {
+      "hypothesis": "Robustness >70% retention",
+      "achieved_value": 84.94106102096298,
+      "target_value": 70.0,
+      "p_value": 0.02,
+      "effect_size": 1.4941061020962976,
+      "significant": true
+    }
+  ],
+  "timestamp": "2025-08-11 00:42:05",
+  "framework_version": "1.0.0"
+}
