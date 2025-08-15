@@ -1,0 +1,117 @@
+{
+  "timestamp": 1755243972.8986104,
+  "overall_status": "NEEDS_IMPROVEMENT",
+  "total_tests": 7,
+  "passed_tests": 2,
+  "failed_tests": 5,
+  "success_rate": 0.2857142857142857,
+  "average_score": 0.34285714285714286,
+  "weighted_score": 0.34285714285714286,
+  "test_results": [
+    {
+      "test_name": "module_imports",
+      "passed": false,
+      "score": 0.4,
+      "error_message": null,
+      "details": {
+        "total_modules": 5,
+        "successful_imports": 2,
+        "import_results": {
+          "av_separation": true,
+          "av_separation.config": true,
+          "av_separation.research": "ImportError: No module named 'torch'",
+          "av_separation.robust": "ImportError: No module named 'torch'",
+          "av_separation.optimized": "ImportError: No module named 'torch'"
+        }
+      }
+    },
+    {
+      "test_name": "file_structure",
+      "passed": true,
+      "score": 1.0,
+      "error_message": null,
+      "details": {
+        "total_files": 16,
+        "existing_files": 16,
+        "file_results": {
+          "src/av_separation/__init__.py": "EXISTS: Core module init",
+          "src/av_separation/config.py": "EXISTS: Configuration module",
+          "src/av_separation/research/__init__.py": "EXISTS: Research module init",
+          "src/av_separation/research/novel_architectures.py": "EXISTS: Novel architectures",
+          "src/av_separation/research/experimental_benchmarks.py": "EXISTS: Benchmarking",
+          "src/av_separation/robust/__init__.py": "EXISTS: Robust module init",
+          "src/av_separation/robust/error_handling.py": "EXISTS: Error handling",
+          "src/av_separation/robust/validation.py": "EXISTS: Input validation",
+          "src/av_separation/robust/security_monitor.py": "EXISTS: Security monitoring",
+          "src/av_separation/optimized/__init__.py": "EXISTS: Optimized module init",
+          "src/av_separation/optimized/performance_engine.py": "EXISTS: Performance engine",
+          "src/av_separation/optimized/auto_scaler.py": "EXISTS: Auto scaler",
+          "src/av_separation/optimized/distributed_engine.py": "EXISTS: Distributed engine",
+          "README.md": "EXISTS: Project README",
+          "requirements.txt": "EXISTS: Dependencies",
+          "setup.py": "EXISTS: Setup script"
+        }
+      }
+    },
+    {
+      "test_name": "configuration_loading",
+      "passed": true,
+      "score": 1.0,
+      "error_message": null,
+      "details": {
+        "config_checks": {
+          "has_model_config": true,
+          "has_audio_config": true,
+          "has_video_config": true
+        },
+        "passed_checks": 3,
+        "total_checks": 3
+      }
+    },
+    {
+      "test_name": "error_handling_module",
+      "passed": false,
+      "score": 0.0,
+      "error_message": "No module named 'torch'",
+      "details": {}
+    },
+    {
+      "test_name": "validation_module",
+      "passed": false,
+      "score": 0.0,
+      "error_message": "No module named 'torch'",
+      "details": {}
+    },
+    {
+      "test_name": "research_modules",
+      "passed": false,
+      "score": 0.0,
+      "error_message": null,
+      "details": {
+        "import_checks": {
+          "av_separation.research": "No module named 'torch'",
+          "av_separation.research.novel_architectures": "No module named 'torch'",
+          "av_separation.research.experimental_benchmarks": "No module named 'torch'"
+        },
+        "successful_imports": 0,
+        "total_modules": 3
+      }
+    },
+    {
+      "test_name": "optimized_modules",
+      "passed": false,
+      "score": 0.0,
+      "error_message": null,
+      "details": {
+        "import_checks": {
+          "av_separation.optimized": "No module named 'torch'",
+          "av_separation.optimized.performance_engine": "No module named 'torch'",
+          "av_separation.optimized.auto_scaler": "No module named 'torch'",
+          "av_separation.optimized.distributed_engine": "No module named 'torch'"
+        },
+        "successful_imports": 0,
+        "total_modules": 4
+      }
+    }
+  ]
+}

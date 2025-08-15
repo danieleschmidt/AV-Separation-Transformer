@@ -1,0 +1,430 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: av-separation-api
+  namespace: av-separation
+  labels:
+    app: av-separation
+    component: api
+    version: v1.0.0
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    description: "AV-Separation API deployment with auto-scaling"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: av-separation
+      component: api
+  template:
+    metadata:
+      labels:
+        app: av-separation
+        component: api
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: av-separation-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      
+      # Init containers for setup
+      initContainers:
+      - name: wait-for-redis
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          until nc -z av-separation-redis 6379; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "Redis is ready!"
+      
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          until nc -z av-separation-postgres 5432; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+      
+      - name: run-migrations
+        image: av-separation:latest
+        command: ["./entrypoint.sh", "migrate"]
+        env:
+        - name: POSTGRES_HOST
+          value: "av-separation-postgres"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          value: "av_separation"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: postgres-password
+        volumeMounts:
+        - name: app-logs
+          mountPath: /app/logs
+      
+      containers:
+      - name: av-separation-api
+        image: av-separation:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        
+        env:
+        - name: ENV
+          value: "production"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: WORKERS
+          value: "4"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8000"
+        
+        # Database configuration
+        - name: POSTGRES_HOST
+          value: "av-separation-postgres"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          value: "av_separation"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: postgres-password
+        
+        # Redis configuration
+        - name: REDIS_HOST
+          value: "av-separation-redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: redis-password
+              optional: true
+        
+        # Monitoring configuration
+        - name: PROMETHEUS_PORT
+          value: "9090"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent"
+        - name: JAEGER_AGENT_PORT
+          value: "6831"
+        
+        # Security configuration
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: jwt-secret
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: api-key
+        
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+            ephemeral-storage: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+            ephemeral-storage: 5Gi
+        
+        volumeMounts:
+        - name: app-config
+          mountPath: /app/config
+          readOnly: true
+        - name: app-models
+          mountPath: /app/models
+          readOnly: true
+        - name: app-logs
+          mountPath: /app/logs
+        - name: tmp-volume
+          mountPath: /tmp
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+          successThreshold: 1
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
+      
+      # Sidecar for log collection
+      - name: log-collector
+        image: fluent/fluent-bit:2.1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: fluent-bit-config
+          mountPath: /fluent-bit/etc
+        - name: app-logs
+          mountPath: /app/logs
+          readOnly: true
+        env:
+        - name: FLUENT_ELASTICSEARCH_HOST
+          value: "elasticsearch"
+        - name: FLUENT_ELASTICSEARCH_PORT
+          value: "9200"
+      
+      volumes:
+      - name: app-config
+        configMap:
+          name: av-separation-config
+      - name: app-models
+        persistentVolumeClaim:
+          claimName: av-separation-models-pvc
+      - name: app-logs
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: fluent-bit-config
+        configMap:
+          name: fluent-bit-config
+      
+      nodeSelector:
+        node-type: "cpu-optimized"
+      
+      tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "av-separation"
+        effect: "NoSchedule"
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["av-separation"]
+                - key: component
+                  operator: In
+                  values: ["api"]
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: node-type
+                operator: In
+                values: ["cpu-optimized"]
+      
+      terminationGracePeriodSeconds: 30
+      
+      imagePullSecrets:
+      - name: av-separation-registry-secret
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: av-separation-gpu-worker
+  namespace: av-separation
+  labels:
+    app: av-separation
+    component: gpu-worker
+    version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: Recreate  # GPU resources need careful handling
+  selector:
+    matchLabels:
+      app: av-separation
+      component: gpu-worker
+  template:
+    metadata:
+      labels:
+        app: av-separation
+        component: gpu-worker
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: av-separation-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      
+      containers:
+      - name: av-separation-gpu-worker
+        image: av-separation-gpu:latest
+        imagePullPolicy: Always
+        command: ["./entrypoint.sh", "gpu-worker"]
+        
+        env:
+        - name: ENV
+          value: "production"
+        - name: WORKER_TYPE
+          value: "gpu"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        - name: GPU_MEMORY_LIMIT
+          value: "8000"
+        
+        - name: REDIS_HOST
+          value: "av-separation-redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: av-separation-secrets
+              key: redis-password
+              optional: true
+        
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 8Gi
+            nvidia.com/gpu: 1
+          limits:
+            cpu: 4000m
+            memory: 16Gi
+            nvidia.com/gpu: 1
+        
+        volumeMounts:
+        - name: app-models
+          mountPath: /app/models
+          readOnly: true
+        - name: app-logs
+          mountPath: /app/logs
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: shm-volume
+          mountPath: /dev/shm
+        
+        livenessProbe:
+          exec:
+            command: ["python", "-c", "import torch; assert torch.cuda.is_available()"]
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 30
+          failureThreshold: 3
+        
+        readinessProbe:
+          exec:
+            command: ["python", "-c", "import torch; print('GPU ready' if torch.cuda.is_available() else 'GPU not ready')"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 3
+      
+      volumes:
+      - name: app-models
+        persistentVolumeClaim:
+          claimName: av-separation-models-pvc
+      - name: app-logs
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: shm-volume
+        emptyDir:
+          medium: Memory
+          sizeLimit: 4Gi
+      
+      nodeSelector:
+        node-type: "gpu-optimized"
+        nvidia.com/gpu.present: "true"
+      
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "dedicated"
+        operator: "Equal"
+        value: "av-separation"
+        effect: "NoSchedule"
+      
+      terminationGracePeriodSeconds: 60
+      
+      imagePullSecrets:
+      - name: av-separation-registry-secret

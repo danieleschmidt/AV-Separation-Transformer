@@ -1,0 +1,291 @@
+version: '3.8'
+
+services:
+  # Main AV-Separation API Service
+  av-separation-api:
+    build:
+      context: ../..
+      dockerfile: deployment/production/Dockerfile.api
+      args:
+        BUILD_ENV: production
+    image: av-separation:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - LOG_LEVEL=info
+      - WORKERS=4
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=av_separation
+      - POSTGRES_USER=av_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PROMETHEUS_PORT=9090
+      - JAEGER_AGENT_HOST=jaeger
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    depends_on:
+      - redis
+      - postgres
+      - jaeger
+
+  # GPU-enabled worker service
+  av-separation-gpu-worker:
+    build:
+      context: ../..
+      dockerfile: deployment/production/Dockerfile.gpu
+      args:
+        BUILD_ENV: production
+    image: av-separation-gpu:latest
+    environment:
+      - ENV=production
+      - WORKER_TYPE=gpu
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    depends_on:
+      - redis
+
+  # Load balancer
+  nginx:
+    build:
+      context: ../..
+      dockerfile: deployment/production/Dockerfile.nginx
+    image: av-separation-nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/ssl/certs:ro
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    depends_on:
+      - av-separation-api
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and job queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL for metadata and analytics
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=av_separation
+      - POSTGRES_USER=av_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U av_user -d av_separation"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://monitoring.your-domain.com
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=memory
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+
+  # Log aggregation with ELK stack
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.0
+    volumes:
+      - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logs:/app/logs:ro
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+  # Model serving with TensorRT
+  triton-server:
+    image: nvcr.io/nvidia/tritonserver:23.08-py3
+    ports:
+      - "8001:8001"  # HTTP
+      - "8002:8002"  # GRPC
+    volumes:
+      - ./models/triton:/models
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    runtime: nvidia
+    command: tritonserver --model-repository=/models --strict-model-config=false
+
+  # WebRTC signaling server
+  webrtc-signaling:
+    build:
+      context: ../..
+      dockerfile: deployment/production/Dockerfile.webrtc
+    image: av-separation-webrtc:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - av-separation-network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+
+networks:
+  av-separation-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
