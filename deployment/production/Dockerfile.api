@@ -1,0 +1,144 @@
+# Multi-stage production Dockerfile for AV-Separation API
+FROM nvidia/cuda:12.1-devel-ubuntu22.04 AS base
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/opt/conda/bin:$PATH"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    build-essential \
+    cmake \
+    pkg-config \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libavutil-dev \
+    libavfilter-dev \
+    libavdevice-dev \
+    libopencv-dev \
+    libssl-dev \
+    libffi-dev \
+    libasound2-dev \
+    libpulse-dev \
+    libx11-dev \
+    libxext-dev \
+    libxrandr-dev \
+    libxrender-dev \
+    libxss-dev \
+    libglib2.0-dev \
+    libgtk-3-dev \
+    libnss3-dev \
+    libasound2-dev \
+    libxtst6 \
+    libatspi2.0-0 \
+    libdrm2 \
+    libxcomposite1 \
+    libxdamage1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Miniconda
+RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh \
+    && bash /tmp/miniconda.sh -b -p /opt/conda \
+    && rm /tmp/miniconda.sh \
+    && conda clean -a
+
+# Create conda environment with Python 3.10
+RUN conda create -n av-separation python=3.10 -y \
+    && conda clean -a
+
+# Activate environment and install PyTorch with CUDA support
+SHELL ["conda", "run", "-n", "av-separation", "/bin/bash", "-c"]
+RUN conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y \
+    && conda clean -a
+
+# Install additional ML packages
+RUN conda install -y \
+    numpy \
+    scipy \
+    matplotlib \
+    pillow \
+    scikit-learn \
+    pandas \
+    && conda clean -a
+
+# Build stage for Python dependencies
+FROM base AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+COPY setup.py .
+
+# Install Python dependencies
+SHELL ["conda", "run", "-n", "av-separation", "/bin/bash", "-c"]
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional production dependencies
+RUN pip install --no-cache-dir \
+    gunicorn \
+    uvicorn[standard] \
+    prometheus-client \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-prometheus \
+    opentelemetry-instrumentation-fastapi \
+    opentelemetry-instrumentation-requests \
+    jaeger-client \
+    structlog \
+    sentry-sdk
+
+# Production stage
+FROM base AS production
+
+# Create non-root user
+RUN groupadd -r avuser && useradd -r -g avuser -u 1001 avuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy conda environment from builder
+COPY --from=builder /opt/conda /opt/conda
+
+# Copy application code
+COPY src/ ./src/
+COPY deployment/production/entrypoint.sh ./
+COPY deployment/production/healthcheck.py ./
+COPY models/ ./models/
+
+# Copy configuration files
+COPY deployment/production/config/ ./config/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/tmp \
+    && chown -R avuser:avuser /app \
+    && chmod +x entrypoint.sh
+
+# Install application
+SHELL ["conda", "run", "-n", "av-separation", "/bin/bash", "-c"]
+RUN pip install -e .
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD conda run -n av-separation python healthcheck.py
+
+# Switch to non-root user
+USER avuser
+
+# Expose ports
+EXPOSE 8000 9090
+
+# Set environment activation
+ENV CONDA_DEFAULT_ENV=av-separation
+ENV PATH="/opt/conda/envs/av-separation/bin:$PATH"
+
+# Entry point
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["api"]

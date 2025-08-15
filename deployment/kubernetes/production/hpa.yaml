@@ -1,0 +1,344 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: av-separation-api-hpa
+  namespace: av-separation
+  labels:
+    app: av-separation
+    component: api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: av-separation-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  # CPU utilization target
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  
+  # Memory utilization target
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  
+  # Custom metrics for request rate
+  - type: Pods
+    pods:
+      metric:
+        name: requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  
+  # Custom metrics for queue length
+  - type: Object
+    object:
+      metric:
+        name: redis_queue_length
+      describedObject:
+        apiVersion: v1
+        kind: Service
+        name: av-separation-redis
+      target:
+        type: Value
+        value: "50"
+  
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 60
+      selectPolicy: Max
+    
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Min
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: av-separation-gpu-worker-hpa
+  namespace: av-separation
+  labels:
+    app: av-separation
+    component: gpu-worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: av-separation-gpu-worker
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  # GPU utilization (custom metric)
+  - type: Pods
+    pods:
+      metric:
+        name: nvidia_gpu_utilization
+      target:
+        type: AverageValue
+        averageValue: "75"
+  
+  # GPU memory utilization
+  - type: Pods
+    pods:
+      metric:
+        name: nvidia_gpu_memory_utilization
+      target:
+        type: AverageValue
+        averageValue: "80"
+  
+  # Processing queue length
+  - type: Object
+    object:
+      metric:
+        name: gpu_processing_queue_length
+      describedObject:
+        apiVersion: v1
+        kind: Service
+        name: av-separation-redis
+      target:
+        type: Value
+        value: "10"
+  
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 180  # Longer for GPU resources
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 120
+      selectPolicy: Max
+    
+    scaleDown:
+      stabilizationWindowSeconds: 600  # Very conservative for GPU
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 300
+      selectPolicy: Min
+
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: av-separation-metrics
+  namespace: av-separation
+  labels:
+    app: av-separation
+spec:
+  selector:
+    matchLabels:
+      app: av-separation
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    honorLabels: true
+  - port: metrics
+    interval: 15s
+    path: /gpu-metrics
+    honorLabels: true
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: av-separation-api-pdb
+  namespace: av-separation
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: av-separation
+      component: api
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: av-separation-gpu-worker-pdb
+  namespace: av-separation
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: av-separation
+      component: gpu-worker
+
+---
+# Custom Resource for Advanced Auto-Scaling
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: av-separation-redis-scaler
+  namespace: av-separation
+spec:
+  scaleTargetRef:
+    name: av-separation-api
+  pollingInterval: 30
+  cooldownPeriod: 300
+  idleReplicaCount: 2
+  minReplicaCount: 3
+  maxReplicaCount: 50
+  triggers:
+  # Redis queue length trigger
+  - type: redis
+    metadata:
+      address: av-separation-redis:6379
+      listName: inference_queue
+      listLength: "10"
+      enableTLS: "false"
+    authenticationRef:
+      name: redis-auth
+  
+  # Prometheus query trigger for response time
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: http_request_duration_seconds
+      threshold: "0.5"
+      query: avg(rate(http_request_duration_seconds_sum[2m])/rate(http_request_duration_seconds_count[2m]))
+
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: av-separation-gpu-scaler
+  namespace: av-separation
+spec:
+  scaleTargetRef:
+    name: av-separation-gpu-worker
+  pollingInterval: 60
+  cooldownPeriod: 600
+  idleReplicaCount: 0
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  # GPU processing queue
+  - type: redis
+    metadata:
+      address: av-separation-redis:6379
+      listName: gpu_inference_queue
+      listLength: "5"
+      enableTLS: "false"
+    authenticationRef:
+      name: redis-auth
+  
+  # Custom GPU utilization metric
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: nvidia_gpu_utilization
+      threshold: "70"
+      query: avg(nvidia_ml_py_gpu_utilization_gpu_ratio)
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-auth
+  namespace: av-separation
+type: Opaque
+data:
+  password: ""  # Base64 encoded Redis password if required
+
+---
+# Network Policy for Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: av-separation-network-policy
+  namespace: av-separation
+spec:
+  podSelector:
+    matchLabels:
+      app: av-separation
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Allow traffic from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+  
+  # Allow metrics scraping from monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  # Allow inter-pod communication
+  - from:
+    - podSelector:
+        matchLabels:
+          app: av-separation
+    ports:
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 9090
+  
+  egress:
+  # Allow DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  
+  # Allow Redis access
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  
+  # Allow PostgreSQL access
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  
+  # Allow external API calls (optional, can be restricted)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
