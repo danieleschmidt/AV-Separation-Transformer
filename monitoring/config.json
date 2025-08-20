@@ -1,0 +1,31 @@
+{
+  "metrics": {
+    "performance": {
+      "latency_threshold_ms": 50,
+      "throughput_threshold": 20,
+      "error_rate_threshold": 0.01
+    },
+    "resource": {
+      "cpu_threshold": 0.8,
+      "memory_threshold": 0.8,
+      "disk_threshold": 0.9
+    },
+    "quality": {
+      "si_snr_threshold": 12.0,
+      "pesq_threshold": 3.5,
+      "stoi_threshold": 0.85
+    }
+  },
+  "alerts": {
+    "webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+    "email_recipients": [
+      "admin@company.com"
+    ],
+    "pagerduty_integration_key": "YOUR_PAGERDUTY_KEY"
+  },
+  "retention": {
+    "metrics_days": 30,
+    "logs_days": 7,
+    "traces_days": 3
+  }
+}
