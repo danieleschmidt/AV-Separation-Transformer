@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "title": "AV Separation Production Monitoring",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          "rate(api_requests_total[5m])"
+        ]
+      },
+      {
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [
+          "histogram_quantile(0.95, api_response_time_bucket)"
+        ]
+      },
+      {
+        "title": "Error Rate",
+        "type": "singlestat",
+        "targets": [
+          "rate(api_errors_total[5m])"
+        ]
+      },
+      {
+        "title": "Model Performance",
+        "type": "graph",
+        "targets": [
+          "avg(model_si_snr)",
+          "avg(model_pesq)"
+        ]
+      },
+      {
+        "title": "GPU Utilization",
+        "type": "graph",
+        "targets": [
+          "nvidia_gpu_utilization_percent"
+        ]
+      },
+      {
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          "process_resident_memory_bytes"
+        ]
+      }
+    ]
+  }
+}
