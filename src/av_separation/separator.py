@@ -211,7 +211,9 @@ class AVSeparator:
     
     @torch.no_grad()
     def benchmark(self, num_iterations: int = 100) -> Dict[str, float]:
+        """Benchmark model inference performance"""
         
+        # Create dummy inputs matching model expectations
         dummy_audio = torch.randn(
             1, self.config.audio.n_mels, 
             int(self.config.audio.chunk_duration * self.config.audio.sample_rate / self.config.audio.hop_length)
@@ -228,6 +230,11 @@ class AVSeparator:
         import time
         latencies = []
         
+        # Warm-up runs
+        for _ in range(10):
+            _ = self.model(dummy_audio, dummy_video)
+        
+        # Benchmark runs
         for _ in range(num_iterations):
             start = time.perf_counter()
             
@@ -239,13 +246,11 @@ class AVSeparator:
             latency = (time.perf_counter() - start) * 1000
             latencies.append(latency)
         
-        latencies = latencies[10:]
-        
         return {
-            'mean_latency_ms': np.mean(latencies),
-            'std_latency_ms': np.std(latencies),
-            'p50_latency_ms': np.percentile(latencies, 50),
-            'p95_latency_ms': np.percentile(latencies, 95),
-            'p99_latency_ms': np.percentile(latencies, 99),
-            'rtf': self.config.audio.chunk_duration * 1000 / np.mean(latencies)
+            'mean_latency_ms': float(np.mean(latencies)),
+            'std_latency_ms': float(np.std(latencies)),
+            'p50_latency_ms': float(np.percentile(latencies, 50)),
+            'p95_latency_ms': float(np.percentile(latencies, 95)),
+            'p99_latency_ms': float(np.percentile(latencies, 99)),
+            'rtf': float(self.config.audio.chunk_duration * 1000 / np.mean(latencies))
         }
