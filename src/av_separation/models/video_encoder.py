@@ -220,10 +220,19 @@ class VideoEncoder(nn.Module):
         
         visual_features = self.lip_encoder(lip_regions)
         
-        if visual_features.size(1) < 100:
-            visual_features = visual_features + self.temporal_embedding[:, :visual_features.size(1)]
+        # Handle dynamic temporal dimensions
+        seq_len = visual_features.size(1)
+        if seq_len <= self.temporal_embedding.size(1):
+            temporal_emb = self.temporal_embedding[:, :seq_len, :]
         else:
-            visual_features = visual_features + self.temporal_embedding
+            # Interpolate temporal embedding if sequence is longer
+            temporal_emb = F.interpolate(
+                self.temporal_embedding.permute(0, 2, 1), 
+                size=seq_len, 
+                mode='linear', 
+                align_corners=False
+            ).permute(0, 2, 1)
+        visual_features = visual_features + temporal_emb
         
         if speaker_ids is not None:
             speaker_emb = self.speaker_embedding(speaker_ids)

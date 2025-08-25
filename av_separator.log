@@ -1,0 +1,46 @@
+2025-08-25 01:09:03,476 - root - INFO - Core separator initialized (attempt 1)
+2025-08-25 01:09:03,477 - root - INFO - RobustAVSeparator initialized successfully
+2025-08-25 01:09:03,479 - root - INFO - [5cc28f34] Starting separation request
+2025-08-25 01:09:06,014 - root - ERROR - Error in separation_request_5cc28f34: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+2025-08-25 01:09:06,016 - root - ERROR - Stack trace: Traceback (most recent call last):
+  File "/root/repo/src/av_separation/robust_system.py", line 109, in handle_errors
+    yield
+  File "/root/repo/src/av_separation/robust_system.py", line 321, in separate_audio_visual
+    separated_audio = self.separator.separate_stream(audio, video[0])  # Use first frame
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/src/av_separation/separator.py", line 199, in separate_stream
+    outputs = self.model(
+              ^^^^^^^^^^^
+  File "/root/repo/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/src/av_separation/models/transformer.py", line 59, in forward
+    separation_outputs = self.decoder(fused_features, mixture_spectrogram)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/src/av_separation/models/decoder.py", line 225, in forward
+    waveform = self.griffin_lim(magnitude)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/src/av_separation/models/decoder.py", line 95, in forward
+    waveform = torch.istft(
+               ^^^^^^^^^^^^
+RuntimeError: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+
+2025-08-25 01:09:06,016 - root - INFO - Retrying in 1.0s (attempt 1)
+2025-08-25 01:09:07,016 - root - ERROR - [5cc28f34] Separation failed: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
+2025-08-25 01:18:22,479 - root - INFO - Core separator initialized (attempt 1)
+2025-08-25 01:18:22,479 - root - INFO - RobustAVSeparator initialized successfully
