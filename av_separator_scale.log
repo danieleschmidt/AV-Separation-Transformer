@@ -1,0 +1,171 @@
+2025-08-26 03:54:12,649 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:935 | Initializing ScalableAVSeparator
+2025-08-26 03:54:12,649 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:936 |   - Speakers: 2
+2025-08-26 03:54:12,650 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:937 |   - Device: cpu
+2025-08-26 03:54:12,650 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:938 |   - Scaling features: {'enable_caching': True, 'enable_gpu_optimization': False, 'enable_mixed_precision': False, 'enable_model_compilation': False, 'max_concurrent_requests': 6, 'thread_pool_size': 2, 'process_pool_size': 1, 'batch_processing': True, 'max_batch_size': 3, 'auto_scale': True, 'target_gpu_utilization': 0.8, 'target_memory_utilization': 0.7, 'memory_cleanup_threshold': 0.9, 'cache_size_mb': 100, 'cache_ttl_seconds': 3600, 'enable_disk_cache': True, 'cache_dir': './cache', 'optimize_for_inference': True, 'use_tensorrt': False, 'quantization': 'none'}
+2025-08-26 03:54:12,650 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:381 | Initializing OptimizedAVTransformer (fp16=False)
+2025-08-26 03:54:12,672 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:450 | OptimizedAVTransformer initialized with 813,124 parameters
+2025-08-26 03:54:12,673 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:139 | ModelCache initialized (size: 100MB, TTL: 3600s)
+2025-08-26 03:54:12,673 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:267 | ResourceMonitor initialized
+2025-08-26 03:54:12,674 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.start_monitoring:278 | Resource monitoring started
+2025-08-26 03:54:12,676 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:701 | ScalableRequestProcessor initialized (threads: 2, processes: 1)
+2025-08-26 03:54:12,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.start:713 | Scalable request processor started
+2025-08-26 03:54:12,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:978 | ScalableAVSeparator initialized successfully
+2025-08-26 03:54:12,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:979 |   - Parameters: 813,124
+2025-08-26 03:54:12,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:980 |   - Cache enabled: True
+2025-08-26 03:54:12,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.__init__:981 |   - Monitoring enabled: True
+2025-08-26 03:54:12,678 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.separate:1045 | Processing test_video_scale.mp4 (cache miss)
+2025-08-26 03:54:12,908 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:628 | Optimized forward pass failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:12,910 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:629 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_3_scalable_implementation.py", line 558, in _forward_impl
+    chunk_features = self.video_embed(chunk)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+RuntimeError: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+
+2025-08-26 03:54:12,910 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._process_single:872 | Single request processing failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:12,911 | ERROR | [MainProcess-MainThread] | generation_3_scalable_implementation.separate:1075 | Scalable separation failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:12,911 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.separate:1045 | Processing test_video_scale.mp4 (cache miss)
+2025-08-26 03:54:13,107 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:628 | Optimized forward pass failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,108 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:629 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_3_scalable_implementation.py", line 558, in _forward_impl
+    chunk_features = self.video_embed(chunk)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+RuntimeError: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+
+2025-08-26 03:54:13,109 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._process_single:872 | Single request processing failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,109 | ERROR | [MainProcess-MainThread] | generation_3_scalable_implementation.separate:1075 | Scalable separation failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,109 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.separate:1045 | Processing test_video_scale.mp4 (cache miss)
+2025-08-26 03:54:13,307 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:628 | Optimized forward pass failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,308 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:629 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_3_scalable_implementation.py", line 558, in _forward_impl
+    chunk_features = self.video_embed(chunk)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+RuntimeError: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+
+2025-08-26 03:54:13,308 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._process_single:872 | Single request processing failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,308 | ERROR | [MainProcess-MainThread] | generation_3_scalable_implementation.separate:1075 | Scalable separation failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,620 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:628 | Optimized forward pass failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,622 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:629 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_3_scalable_implementation.py", line 558, in _forward_impl
+    chunk_features = self.video_embed(chunk)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+RuntimeError: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+
+2025-08-26 03:54:13,622 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._process_single:872 | Single request processing failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,860 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:628 | Optimized forward pass failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,861 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._forward_impl:629 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_3_scalable_implementation.py", line 558, in _forward_impl
+    chunk_features = self.video_embed(chunk)
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/container.py", line 244, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 548, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/conv.py", line 543, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+RuntimeError: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+
+2025-08-26 03:54:13,861 | ERROR | [MainProcess-Thread-2 (_processing_loop)] | generation_3_scalable_implementation._process_single:872 | Single request processing failed: Given groups=1, weight of size [32, 3, 7, 7], expected input[32, 224, 224, 3] to have 3 channels, but got 224 channels instead
+2025-08-26 03:54:13,892 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.shutdown:1165 | Shutting down ScalableAVSeparator
+2025-08-26 03:54:13,925 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.stop:724 | Scalable request processor stopped
+2025-08-26 03:54:14,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.stop_monitoring:285 | Resource monitoring stopped
+2025-08-26 03:54:14,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.shutdown:1177 | Final cache stats: {'hits': 0, 'misses': 3, 'hit_rate': 0.0, 'cache_size_mb': 0.0, 'entries': 0, 'max_size_mb': 100.0}
+2025-08-26 03:54:14,677 | INFO | [MainProcess-MainThread] | generation_3_scalable_implementation.shutdown:1179 | Shutdown complete

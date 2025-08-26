@@ -44,3 +44,119 @@ RuntimeError: min(): Expected reduction dim to be specified for input.numel() ==
 2025-08-25 01:09:07,016 - root - ERROR - [5cc28f34] Separation failed: min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
 2025-08-25 01:18:22,479 - root - INFO - Core separator initialized (attempt 1)
 2025-08-25 01:18:22,479 - root - INFO - RobustAVSeparator initialized successfully
+2025-08-26 03:50:36,388 | INFO | generation_2_robust_implementation.__init__:508 | Initializing RobustAVSeparator (speakers=2, device=cpu)
+2025-08-26 03:50:36,388 | INFO | generation_2_robust_implementation.__init__:230 | Initializing RobustAVTransformer
+2025-08-26 03:50:36,409 | INFO | generation_2_robust_implementation.__init__:283 | RobustAVTransformer initialized with 911,684 parameters
+2025-08-26 03:50:36,410 | INFO | generation_2_robust_implementation.__init__:72 | SecureAudioProcessor initialized (sr=16000)
+2025-08-26 03:50:36,410 | INFO | generation_2_robust_implementation.__init__:173 | SecureVideoProcessor initialized (224x224@30fps)
+2025-08-26 03:50:36,410 | INFO | generation_2_robust_implementation.__init__:536 | RobustAVSeparator initialized successfully
+2025-08-26 03:50:36,411 | INFO | generation_2_robust_implementation.__init__:537 |   - Device: cpu
+2025-08-26 03:50:36,411 | INFO | generation_2_robust_implementation.__init__:538 |   - Speakers: 2
+2025-08-26 03:50:36,411 | INFO | generation_2_robust_implementation.__init__:539 |   - Parameters: 911,684
+2025-08-26 03:50:36,411 | INFO | generation_2_robust_implementation.__init__:540 |   - Security enabled: True
+2025-08-26 03:50:38,863 | INFO | generation_2_robust_implementation.inference_monitor:356 | Inference: 2276.4ms, Memory: +0.0MB
+2025-08-26 03:50:38,869 | INFO | generation_2_robust_implementation.separate:601 | Starting separation: test_video.mp4
+2025-08-26 03:50:38,869 | ERROR | generation_2_robust_implementation.load_audio:129 | Audio loading failed: Audio file not found: test_video.mp4
+2025-08-26 03:50:38,869 | ERROR | generation_2_robust_implementation.load_audio:130 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_2_robust_implementation.py", line 100, in load_audio
+    self.validate_input(path)
+  File "/root/repo/generation_2_robust_implementation.py", line 80, in validate_input
+    raise FileNotFoundError(f"Audio file not found: {path}")
+FileNotFoundError: Audio file not found: test_video.mp4
+
+2025-08-26 03:50:38,870 | ERROR | generation_2_robust_implementation.separate:658 | Separation failed: Audio file not found: test_video.mp4
+2025-08-26 03:50:38,870 | ERROR | generation_2_robust_implementation.separate:659 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_2_robust_implementation.py", line 610, in separate
+    audio_waveform, sample_rate = self.audio_processor.load_audio(str(input_path))
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/generation_2_robust_implementation.py", line 100, in load_audio
+    self.validate_input(path)
+  File "/root/repo/generation_2_robust_implementation.py", line 80, in validate_input
+    raise FileNotFoundError(f"Audio file not found: {path}")
+FileNotFoundError: Audio file not found: test_video.mp4
+
+2025-08-26 03:50:38,870 | ERROR | generation_2_robust_implementation.main:875 | Generation 2 demonstration failed: Audio file not found: test_video.mp4
+2025-08-26 03:50:50,634 | INFO | generation_2_robust_implementation.__init__:508 | Initializing RobustAVSeparator (speakers=2, device=cpu)
+2025-08-26 03:50:50,635 | INFO | generation_2_robust_implementation.__init__:230 | Initializing RobustAVTransformer
+2025-08-26 03:50:50,656 | INFO | generation_2_robust_implementation.__init__:283 | RobustAVTransformer initialized with 911,684 parameters
+2025-08-26 03:50:50,657 | INFO | generation_2_robust_implementation.__init__:72 | SecureAudioProcessor initialized (sr=16000)
+2025-08-26 03:50:50,658 | INFO | generation_2_robust_implementation.__init__:173 | SecureVideoProcessor initialized (224x224@30fps)
+2025-08-26 03:50:50,658 | INFO | generation_2_robust_implementation.__init__:536 | RobustAVSeparator initialized successfully
+2025-08-26 03:50:50,658 | INFO | generation_2_robust_implementation.__init__:537 |   - Device: cpu
+2025-08-26 03:50:50,658 | INFO | generation_2_robust_implementation.__init__:538 |   - Speakers: 2
+2025-08-26 03:50:50,658 | INFO | generation_2_robust_implementation.__init__:539 |   - Parameters: 911,684
+2025-08-26 03:50:50,658 | INFO | generation_2_robust_implementation.__init__:540 |   - Security enabled: True
+2025-08-26 03:50:52,307 | INFO | generation_2_robust_implementation.inference_monitor:356 | Inference: 1474.7ms, Memory: +0.0MB
+2025-08-26 03:50:52,313 | INFO | generation_2_robust_implementation.separate:601 | Starting separation: test_video.mp4
+2025-08-26 03:50:52,314 | INFO | generation_2_robust_implementation.validate_input:91 | Audio input validated: test_video.mp4 (0.0MB)
+2025-08-26 03:50:52,327 | INFO | generation_2_robust_implementation.load_audio:124 | Audio loaded successfully: (64000,) @ 16000Hz (0.014s)
+2025-08-26 03:50:52,328 | INFO | generation_2_robust_implementation.validate_input:189 | Video input validated: test_video.mp4 (0.0MB)
+2025-08-26 03:50:52,374 | INFO | generation_2_robust_implementation.load_video:214 | Video loaded: (120, 224, 224, 3) (0.047s)
+2025-08-26 03:50:52,375 | INFO | generation_2_robust_implementation.separate:621 | Loaded audio: (64000,), video: (120, 224, 224, 3)
+2025-08-26 03:50:53,771 | INFO | generation_2_robust_implementation.inference_monitor:356 | Inference: 1208.3ms, Memory: +0.0MB
+2025-08-26 03:50:53,776 | INFO | generation_2_robust_implementation._validate_outputs:759 | Output validation passed for 2 speakers
+2025-08-26 03:50:53,776 | INFO | generation_2_robust_implementation.save_audio:158 | Audio saved: output/test_video_speaker_1.wav (shape: (32000,), 0.000s)
+2025-08-26 03:50:53,777 | INFO | generation_2_robust_implementation.save_audio:158 | Audio saved: output/test_video_speaker_2.wav (shape: (32000,), 0.000s)
+2025-08-26 03:50:53,777 | INFO | generation_2_robust_implementation.separate:647 | Separation complete: 2 speakers in 1.46s
+2025-08-26 03:50:53,777 | INFO | generation_2_robust_implementation.separate:601 | Starting separation: nonexistent_file.mp4
+2025-08-26 03:50:53,777 | ERROR | generation_2_robust_implementation.load_audio:129 | Audio loading failed: Audio file not found: nonexistent_file.mp4
+2025-08-26 03:50:53,778 | ERROR | generation_2_robust_implementation.load_audio:130 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_2_robust_implementation.py", line 100, in load_audio
+    self.validate_input(path)
+  File "/root/repo/generation_2_robust_implementation.py", line 80, in validate_input
+    raise FileNotFoundError(f"Audio file not found: {path}")
+FileNotFoundError: Audio file not found: nonexistent_file.mp4
+
+2025-08-26 03:50:53,778 | ERROR | generation_2_robust_implementation.separate:658 | Separation failed: Audio file not found: nonexistent_file.mp4
+2025-08-26 03:50:53,778 | ERROR | generation_2_robust_implementation.separate:659 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_2_robust_implementation.py", line 610, in separate
+    audio_waveform, sample_rate = self.audio_processor.load_audio(str(input_path))
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/generation_2_robust_implementation.py", line 100, in load_audio
+    self.validate_input(path)
+  File "/root/repo/generation_2_robust_implementation.py", line 80, in validate_input
+    raise FileNotFoundError(f"Audio file not found: {path}")
+FileNotFoundError: Audio file not found: nonexistent_file.mp4
+
+2025-08-26 03:56:04,350 | INFO | generation_2_robust_implementation.__init__:508 | Initializing RobustAVSeparator (speakers=2, device=cpu)
+2025-08-26 03:56:04,351 | INFO | generation_2_robust_implementation.__init__:230 | Initializing RobustAVTransformer
+2025-08-26 03:56:04,380 | INFO | generation_2_robust_implementation.__init__:283 | RobustAVTransformer initialized with 911,684 parameters
+2025-08-26 03:56:04,382 | INFO | generation_2_robust_implementation.__init__:72 | SecureAudioProcessor initialized (sr=16000)
+2025-08-26 03:56:04,382 | INFO | generation_2_robust_implementation.__init__:173 | SecureVideoProcessor initialized (224x224@30fps)
+2025-08-26 03:56:04,382 | INFO | generation_2_robust_implementation.__init__:536 | RobustAVSeparator initialized successfully
+2025-08-26 03:56:04,382 | INFO | generation_2_robust_implementation.__init__:537 |   - Device: cpu
+2025-08-26 03:56:04,382 | INFO | generation_2_robust_implementation.__init__:538 |   - Speakers: 2
+2025-08-26 03:56:04,383 | INFO | generation_2_robust_implementation.__init__:539 |   - Parameters: 911,684
+2025-08-26 03:56:04,383 | INFO | generation_2_robust_implementation.__init__:540 |   - Security enabled: True
+2025-08-26 03:56:06,734 | INFO | generation_2_robust_implementation.inference_monitor:356 | Inference: 2127.3ms, Memory: +0.0MB
+2025-08-26 03:56:06,741 | INFO | generation_2_robust_implementation.separate:601 | Starting separation: test_video.mp4
+2025-08-26 03:56:06,741 | INFO | generation_2_robust_implementation.validate_input:91 | Audio input validated: test_video.mp4 (0.0MB)
+2025-08-26 03:56:06,759 | INFO | generation_2_robust_implementation.load_audio:124 | Audio loaded successfully: (64000,) @ 16000Hz (0.018s)
+2025-08-26 03:56:06,759 | INFO | generation_2_robust_implementation.validate_input:189 | Video input validated: test_video.mp4 (0.0MB)
+2025-08-26 03:56:06,812 | INFO | generation_2_robust_implementation.load_video:214 | Video loaded: (120, 224, 224, 3) (0.053s)
+2025-08-26 03:56:06,812 | INFO | generation_2_robust_implementation.separate:621 | Loaded audio: (64000,), video: (120, 224, 224, 3)
+2025-08-26 03:56:08,562 | INFO | generation_2_robust_implementation.inference_monitor:356 | Inference: 1522.3ms, Memory: +0.0MB
+2025-08-26 03:56:08,568 | INFO | generation_2_robust_implementation._validate_outputs:759 | Output validation passed for 2 speakers
+2025-08-26 03:56:08,568 | INFO | generation_2_robust_implementation.save_audio:158 | Audio saved: output/test_video_speaker_1.wav (shape: (32000,), 0.000s)
+2025-08-26 03:56:08,569 | INFO | generation_2_robust_implementation.save_audio:158 | Audio saved: output/test_video_speaker_2.wav (shape: (32000,), 0.000s)
+2025-08-26 03:56:08,569 | INFO | generation_2_robust_implementation.separate:647 | Separation complete: 2 speakers in 1.83s
+2025-08-26 03:56:08,569 | INFO | generation_2_robust_implementation.separate:601 | Starting separation: nonexistent_file.mp4
+2025-08-26 03:56:08,569 | ERROR | generation_2_robust_implementation.load_audio:129 | Audio loading failed: Audio file not found: nonexistent_file.mp4
+2025-08-26 03:56:08,570 | ERROR | generation_2_robust_implementation.load_audio:130 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_2_robust_implementation.py", line 100, in load_audio
+    self.validate_input(path)
+  File "/root/repo/generation_2_robust_implementation.py", line 80, in validate_input
+    raise FileNotFoundError(f"Audio file not found: {path}")
+FileNotFoundError: Audio file not found: nonexistent_file.mp4
+
+2025-08-26 03:56:08,570 | ERROR | generation_2_robust_implementation.separate:658 | Separation failed: Audio file not found: nonexistent_file.mp4
+2025-08-26 03:56:08,570 | ERROR | generation_2_robust_implementation.separate:659 | Traceback: Traceback (most recent call last):
+  File "/root/repo/generation_2_robust_implementation.py", line 610, in separate
+    audio_waveform, sample_rate = self.audio_processor.load_audio(str(input_path))
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/repo/generation_2_robust_implementation.py", line 100, in load_audio
+    self.validate_input(path)
+  File "/root/repo/generation_2_robust_implementation.py", line 80, in validate_input
+    raise FileNotFoundError(f"Audio file not found: {path}")
+FileNotFoundError: Audio file not found: nonexistent_file.mp4
+

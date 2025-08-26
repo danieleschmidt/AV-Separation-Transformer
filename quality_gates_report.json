@@ -1,0 +1,239 @@
+{
+  "timestamp": 1756180578.8281238,
+  "overall_passed": true,
+  "overall_score": 0.8483898084523556,
+  "pass_rate": 1.0,
+  "critical_gates_passed": true,
+  "execution_time": 27.26416254043579,
+  "summary": {
+    "passed_gates": 6,
+    "total_gates": 6,
+    "critical_gates": [
+      "Code Execution",
+      "Performance",
+      "Security"
+    ],
+    "weighted_score": 0.8483898084523556
+  },
+  "gate_results": [
+    {
+      "gate_name": "Code Execution",
+      "passed": true,
+      "score": 1.0,
+      "details": {
+        "Generation 1": {
+          "status": "PASSED",
+          "output_lines": 31,
+          "has_success_markers": true
+        },
+        "Generation 2": {
+          "status": "PASSED",
+          "output_lines": 30,
+          "has_success_markers": true
+        },
+        "summary": {
+          "passed_tests": 2,
+          "total_tests": 2,
+          "success_rate": 1.0
+        }
+      },
+      "execution_time": 17.704740047454834,
+      "error_message": null
+    },
+    {
+      "gate_name": "Code Quality",
+      "passed": true,
+      "score": 0.7,
+      "details": {
+        "file_metrics": {
+          "generation_4_transcendence_demo.py": {
+            "lines_of_code": 460,
+            "total_lines": 625,
+            "comment_lines": 50,
+            "docstring_lines": 14,
+            "class_count": 2,
+            "function_count": 15,
+            "import_count": 19,
+            "has_error_handling": true,
+            "has_logging": true,
+            "has_type_hints": true
+          },
+          "generation_4_validation_simple.py": {
+            "lines_of_code": 787,
+            "total_lines": 1171,
+            "comment_lines": 128,
+            "docstring_lines": 42,
+            "class_count": 7,
+            "function_count": 40,
+            "import_count": 14,
+            "has_error_handling": true,
+            "has_logging": false,
+            "has_type_hints": true
+          },
+          "generation_5_demonstration.py": {
+            "lines_of_code": 338,
+            "total_lines": 451,
+            "comment_lines": 22,
+            "docstring_lines": 8,
+            "class_count": 0,
+            "function_count": 7,
+            "import_count": 14,
+            "has_error_handling": true,
+            "has_logging": false,
+            "has_type_hints": false
+          },
+          "generation_5_validation_simple.py": {
+            "lines_of_code": 280,
+            "total_lines": 363,
+            "comment_lines": 15,
+            "docstring_lines": 8,
+            "class_count": 0,
+            "function_count": 7,
+            "import_count": 7,
+            "has_error_handling": true,
+            "has_logging": false,
+            "has_type_hints": false
+          },
+          "generation_1_simple_implementation.py": {
+            "lines_of_code": 248,
+            "total_lines": 379,
+            "comment_lines": 45,
+            "docstring_lines": 10,
+            "class_count": 4,
+            "function_count": 15,
+            "import_count": 13,
+            "has_error_handling": false,
+            "has_logging": false,
+            "has_type_hints": true
+          },
+          "generation_3_scalable_implementation.py": {
+            "lines_of_code": 931,
+            "total_lines": 1309,
+            "comment_lines": 120,
+            "docstring_lines": 49,
+            "class_count": 7,
+            "function_count": 51,
+            "import_count": 39,
+            "has_error_handling": true,
+            "has_logging": true,
+            "has_type_hints": true
+          },
+          "generation_2_robust_implementation.py": {
+            "lines_of_code": 629,
+            "total_lines": 887,
+            "comment_lines": 71,
+            "docstring_lines": 23,
+            "class_count": 6,
+            "function_count": 24,
+            "import_count": 21,
+            "has_error_handling": true,
+            "has_logging": true,
+            "has_type_hints": true
+          }
+        },
+        "average_quality_score": 0.7,
+        "files_analyzed": 7
+      },
+      "execution_time": 0.008570194244384766,
+      "error_message": null
+    },
+    {
+      "gate_name": "Performance",
+      "passed": true,
+      "score": 1.0,
+      "details": {
+        "benchmark_results": {
+          "mean_latency_ms": 809.2270027999803,
+          "std_latency_ms": 66.5966191571402,
+          "min_latency_ms": 739.6686060000093,
+          "max_latency_ms": 902.5639879999972,
+          "rtf": 4.942988785791538
+        },
+        "requirements": {
+          "max_latency_ms": 2000,
+          "min_rtf": 1.0
+        },
+        "checks": {
+          "latency_ok": true,
+          "rtf_ok": true
+        },
+        "scores": {
+          "latency_score": 1.0,
+          "rtf_score": 1.0,
+          "overall_score": 1.0
+        }
+      },
+      "execution_time": 9.519060373306274,
+      "error_message": null
+    },
+    {
+      "gate_name": "Security",
+      "passed": true,
+      "score": 0.6285714285714286,
+      "details": {
+        "security_checks": {
+          "input_validation": 4,
+          "error_handling": 6,
+          "no_hardcoded_secrets": 7,
+          "logging_present": 3,
+          "timeout_protection": 2
+        },
+        "files_analyzed": 7,
+        "security_score": 0.6285714285714286,
+        "requirements_met": true
+      },
+      "execution_time": 0.005782365798950195,
+      "error_message": null
+    },
+    {
+      "gate_name": "Documentation",
+      "passed": true,
+      "score": 1.2631716040472643,
+      "details": {
+        "readme_metrics": {
+          "length": 10024,
+          "sections": 97,
+          "code_blocks": 16,
+          "links": 21,
+          "has_installation": true,
+          "has_usage": true,
+          "has_examples": true,
+          "has_api_docs": true
+        },
+        "documentation_score": 1.2631716040472643,
+        "docstring_coverage": 0.8772386801575477,
+        "python_files_analyzed": 7
+      },
+      "execution_time": 0.002408742904663086,
+      "error_message": null
+    },
+    {
+      "gate_name": "Architecture",
+      "passed": true,
+      "score": 0.6285714285714286,
+      "details": {
+        "architecture_metrics": {
+          "separation_of_concerns": 4,
+          "error_handling": 4,
+          "configurability": 4,
+          "extensibility": 4,
+          "scalability_features": 6
+        },
+        "generation_features": {
+          "generation_4_transcendence_demo.py": 4,
+          "generation_4_validation_simple.py": 7,
+          "generation_5_demonstration.py": 0,
+          "generation_5_validation_simple.py": 0,
+          "generation_1_simple_implementation.py": 4,
+          "generation_3_scalable_implementation.py": 13,
+          "generation_2_robust_implementation.py": 12
+        },
+        "progressive_enhancement": false,
+        "architecture_score": 0.6285714285714286,
+        "files_analyzed": 7
+      },
+      "execution_time": 0.020932674407958984,
+      "error_message": null
+    }
+  ]
+}
